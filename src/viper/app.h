@@ -31,22 +31,29 @@ public:
 
 public:
     viper::internal::ErrorCode Run(int argc, char *argv[]);
-    void                     Close();
+    void                       Close();
 
 private:
     viper::internal::ErrorCode GuardLoop();
-    void                     DumpConfiguration();
+    void                       DumpConfiguration();
     viper::internal::ErrorCode InitFlags();
+    viper::internal::ErrorCode InitCommands();
     viper::internal::ErrorCode InitLogs();
     viper::internal::ErrorCode InitController();
     viper::internal::ErrorCode LoadConfig(viper::app::ContextPtr ctx);
-    std::error_code          Execute(viper::app::ContextPtr ctx);
+    std::error_code            Execute(viper::app::ContextPtr ctx);
 
 private:
-    ConfigurationPtr  _localConfig;
+    viper::internal::ErrorCode VersionCommand(viper::app::ContextPtr ctx);
+    std::error_code            ShowCpu(viper::app::ContextPtr ctx);
+    std::error_code            ShowMem(viper::app::ContextPtr ctx);
+    std::error_code            ShowDisk(viper::app::ContextPtr ctx);
+    std::error_code            ShowNet(viper::app::ContextPtr ctx);
+
+private:
+    ConfigurationPtr    _localConfig;
     viper::app::CorePtr _core;
-    std::atomic_bool  _needStop = false;
+    std::atomic_bool    _needStop = false;
 };
 
 #endif
-

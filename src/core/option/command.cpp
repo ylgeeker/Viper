@@ -49,15 +49,48 @@ static void PrintFlags(const std::vector<std::shared_ptr<Flag<T>>>& flags)
 
 static void PrintCommands(const std::map<std::string, std::shared_ptr<Command>>& cmds)
 {
+    if (cmds.empty())
+    {
+        return;
+    }
+
+    size_t maxNameLen = 0;
     for (const auto& cmd : cmds)
     {
-        std::cout << std::left
-                  << std::setw(4)
-                  << " "
-                  << cmd.second->_use
-                  << "\t"
-                  << cmd.second->_short
-                  << std::endl;
+        maxNameLen = std::max(maxNameLen, cmd.second->_use.length());
+    }
+
+    const int nameColumnWidth = static_cast<int>(maxNameLen) + 2;
+    const std::string indent(4 + nameColumnWidth, ' ');
+
+    auto printOne = [&](const std::shared_ptr<Command>& c) {
+        std::cout << "    " << std::left << std::setw(nameColumnWidth) << c->_use;
+        std::vector<std::string> lines = text::Split(c->_short, '\n');
+        if (lines.empty())
+        {
+            std::cout << std::endl;
+            return;
+        }
+        std::cout << lines[0] << std::endl;
+        for (size_t i = 1; i < lines.size(); ++i)
+        {
+            std::cout << indent << lines[i] << std::endl;
+        }
+    };
+
+    auto itHelp = cmds.find("help");
+    for (const auto& cmd : cmds)
+    {
+        if (cmd.first == "help")
+        {
+            continue;
+        }
+        printOne(cmd.second);
+    }
+    
+    if (itHelp != cmds.end())
+    {
+        printOne(itHelp->second);
     }
 }
 

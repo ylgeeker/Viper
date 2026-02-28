@@ -46,6 +46,25 @@ public:
     void AddFlag(const std::string& name, char shortName, const std::string& description, const option::Value& defaultValue);
 
     /**
+     * @brief AddCommand register a subcommand (e.g. "run", "version").
+     * @param name Subcommand name as used on CLI (e.g. "run")
+     * @param shortDesc Short description for usage/help listing
+     * @param handler Called when this subcommand is invoked; receives Context with parsed args.
+     */
+    void AddCommand(const std::string& name, const std::string& shortDesc, CommandHandler handler);
+
+    /**
+     * @brief AddCommand register a pre-built subcommand (may have nested subcommands/flags).
+     * @param cmd Subcommand tree; caller must set _use, _short, and optionally _run (use GetContext() to SetArgs and run logic).
+     */
+    void AddCommand(std::shared_ptr<option::Command> cmd);
+
+    /**
+     * @brief GetContext return the shared context (e.g. for use in custom command _run with SetArgs).
+     */
+    ContextPtr GetContext() const;
+
+    /**
      * @brief Run parse argv, fill context with parsed args, and call executor.
      *
      * @param argc the argv count

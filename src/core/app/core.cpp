@@ -43,6 +43,29 @@ void Core::AddFlag(const std::string& name, char shortName, const std::string& d
     _root->AddFlag(flag);
 }
 
+void Core::AddCommand(const std::string& name, const std::string& shortDesc, CommandHandler handler)
+{
+    auto cmd = std::make_shared<option::Command>();
+    cmd->_use   = name;
+    cmd->_short = shortDesc;
+    cmd->_run   = [this, handler](const option::Args& args) {
+        _ctx->SetArgs(args);
+        std::error_code ec = handler(_ctx);
+        return ec ? 1 : 0;
+    };
+    _root->AddCommand(cmd);
+}
+
+void Core::AddCommand(std::shared_ptr<option::Command> cmd)
+{
+    _root->AddCommand(cmd);
+}
+
+ContextPtr Core::GetContext() const
+{
+    return _ctx;
+}
+
 std::error_code Core::Run(int argc, char* argv[], CommandHandler executor)
 {
     _root->_run = [this, executor](const option::Args& args) {
