@@ -18,12 +18,15 @@
 
 #include "internal/error.h"
 
+#include "core/app/core.h"
 #include "core/assist/time.h"
 #include "core/core.h"
+#include "core/option/value.h"
 #include "core/error/error.h"
 #include "core/log/log.h"
 
 #include <cstdint>
+#include <string>
 
 App::App()
 {
@@ -86,15 +89,7 @@ void App::DumpConfiguration()
 
 viper::internal::ErrorCode App::InitFlags()
 {
-    viper::app::FlagString flagConfig;
-
-    flagConfig._fullName    = "config";
-    flagConfig._shortName   = 'c';
-    flagConfig._description = "the config file";
-    flagConfig._value       = "./etc/viper.yaml";
-
-    _core->AddCommand(flagConfig);
-
+    _core->AddFlag("config", 'c', "the config file", viper::option::Value("./etc/viper.yaml"));
     return viper::internal::ErrorCode::SUCCESS;
 }
 
@@ -125,13 +120,13 @@ viper::internal::ErrorCode App::LoadConfig(viper::app::ContextPtr ctx)
         return viper::internal::ErrorCode::ERROR;
     }
 
-    auto cfg = ctx->GetFlagValue<viper::app::FlagString>("config");
-    std::cout << "config:" << cfg._value << std::endl;
+    std::string configPath = ctx->GetFlagValue<std::string>("config");
+    std::cout << "config:" << configPath << std::endl;
 
-    auto ec = ctx->LoadConfig(cfg._value);
+    auto ec = ctx->LoadConfig(configPath);
     if (!viper::internal::IsSuccess(ec))
     {
-        LOG_STD("can not load config file(%s)", cfg._value.c_str());
+        LOG_STD("can not load config file(%s)", configPath.c_str());
         return viper::internal::ErrorCode::ERROR;
     }
 

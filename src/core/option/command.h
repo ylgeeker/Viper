@@ -45,7 +45,7 @@ public:
     /// Register a flag with this command. Flags are typically created with
     /// `std::make_shared<Flag<T>>(...)` and then passed here.
     template <typename T>
-    void AddFlag(std::shared_ptr<Flag<T>> flag) {};
+    void AddFlag(std::shared_ptr<Flag<T>> flag) {}
 
     /// Add a child/sub-command under this command.
     /// Example: `root->AddCommand(testCmd);`
@@ -99,6 +99,9 @@ private:
     /// Subcommands keyed by their `_use` name.
     std::map<std::string, std::shared_ptr<Command>> _subCmds;
 };
+
+template <>
+void Command::AddFlag<Value>(std::shared_ptr<Flag<Value>> flag);
 
 } // namespace viper::option
 

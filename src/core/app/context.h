@@ -18,10 +18,10 @@
 #define _VIPER_CORE_APP_CONTEXT_H_
 
 #include "core/app/config_file.h"
-#include "core/app/flag.h"
 #include "core/app/service_discovery.h"
 #include "core/app/service_registry.h"
 #include "core/container/safe_map.h"
+#include "core/option/args.h"
 
 #include <cstdint>
 #include <map>
@@ -31,16 +31,7 @@
 namespace viper {
 namespace app {
 
-struct ContextFlag
-{
-    std::map<std::string, FlagInt>     _iFlags;
-    std::map<std::string, FlagString>  _sFlags;
-    std::map<std::string, FlagBool>    _bFlags;
-    std::map<std::string, FlagNoValue> _nvFlags;
-};
-
-using CacheName      = std::string;
-using ContextFlagPtr = std::shared_ptr<ContextFlag>;
+using CacheName = std::string;
 
 class Context final
 {
@@ -50,6 +41,8 @@ public:
 
     template <typename T>
     T* Get(const CacheName& name);
+
+    void SetArgs(const option::Args& args);
 
     template <typename T>
     T GetFlagValue(const std::string& name) { return T{}; };
@@ -69,25 +62,22 @@ public:
 private:
     friend class Core;
     container::SafeMap<std::string, void*> _caches;
-    ContextFlagPtr                         _flags;
-    ConfigFilePtr                          _fileCfg;
-    ServiceDiscoveryPtr                    _discovery;
-    ServiceRegistryPtr                     _registry;
+    option::Args                           _args;
+    ConfigFilePtr                         _fileCfg;
+    ServiceDiscoveryPtr                   _discovery;
+    ServiceRegistryPtr                    _registry;
 };
 
 using ContextPtr = std::shared_ptr<Context>;
 
 template <>
-FlagInt Context::GetFlagValue<FlagInt>(const std::string& name);
+int Context::GetFlagValue<int>(const std::string& name);
 
 template <>
-FlagBool Context::GetFlagValue<FlagBool>(const std::string& name);
+bool Context::GetFlagValue<bool>(const std::string& name);
 
 template <>
-FlagString Context::GetFlagValue<FlagString>(const std::string& name);
-
-template <>
-FlagNoValue Context::GetFlagValue<FlagNoValue>(const std::string& name);
+std::string Context::GetFlagValue<std::string>(const std::string& name);
 
 template <>
 bool Context::GetFileConfig<bool>(const std::string& name, bool defaultValue);

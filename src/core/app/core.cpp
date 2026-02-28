@@ -17,7 +17,6 @@
 #include "core/app/core.h"
 #include "core/app/config_file.h"
 #include "core/app/context.h"
-#include "core/app/flag.h"
 
 #include <system_error>
 
@@ -26,9 +25,11 @@ namespace app {
 
 Core::Core()
 {
-    _ctx           = std::make_shared<Context>();
-    _ctx->_flags   = std::make_shared<ContextFlag>();
+    _ctx         = std::make_shared<Context>();
     _ctx->_fileCfg = std::make_shared<ConfigFile>();
+    _root        = std::make_shared<option::Command>();
+    _root->_use  = "viper";
+    _root->_short = "Viper application";
 }
 
 Core::~Core()
@@ -36,86 +37,26 @@ Core::~Core()
     Close();
 }
 
-void Core::AddCommand(const FlagInt& flag)
+void Core::AddFlag(const std::string& name, char shortName, const std::string& description, const option::Value& defaultValue)
 {
-    AddFlag(&_parser, flag);
-    _iFlags.push_back(flag);
-}
-
-void Core::AddCommand(const FlagString& flag)
-{
-    AddFlag(&_parser, flag);
-    _sFlags.push_back(flag);
-}
-
-void Core::AddCommand(const FlagBool& flag)
-{
-    AddFlag(&_parser, flag);
-    _bFlags.push_back(flag);
-}
-
-void Core::AddCommand(const FlagNoValue& flag)
-{
-    AddFlag(&_parser, flag);
-    _nvFlags.push_back(flag);
+    auto flag = std::make_shared<option::Flag<option::Value>>(name, std::string(1, shortName), description, defaultValue);
+    _root->AddFlag(flag);
 }
 
 std::error_code Core::Run(int argc, char* argv[], CommandHandler executor)
 {
-    _parser.parse_check(argc, argv);
+    _root->_run = [this, executor](const option::Args& args) {
+        _ctx->SetArgs(args);
+        std::error_code ec = executor(_ctx);
+        return ec ? 1 : 0;
+    };
 
-    for (auto& flag : _iFlags)
+    int code = _root->Execute(argc, argv);
+    if (code == 0)
     {
-        if (!FlagExist(&_parser, flag))
-        {
-            continue;
-        }
-
-        flag._setted = true;
-        flag._value  = GetFlagValue(&_parser, flag);
-
-        _ctx->_flags->_iFlags[flag._fullName] = flag;
+        return std::error_code{};
     }
-
-    for (auto& flag : _sFlags)
-    {
-        if (!FlagExist(&_parser, flag))
-        {
-            continue;
-        }
-
-        flag._setted = true;
-        flag._value  = GetFlagValue(&_parser, flag);
-
-        _ctx->_flags->_sFlags[flag._fullName] = flag;
-    }
-
-    for (auto& flag : _bFlags)
-    {
-        if (!FlagExist(&_parser, flag))
-        {
-            continue;
-        }
-
-        flag._setted = true;
-        flag._value  = GetFlagValue(&_parser, flag);
-
-        _ctx->_flags->_bFlags[flag._fullName] = flag;
-    }
-
-    for (auto& flag : _nvFlags)
-    {
-        if (!FlagExist(&_parser, flag))
-        {
-            continue;
-        }
-
-        flag._setted = true;
-
-        _ctx->_flags->_nvFlags[flag._fullName] = flag;
-    }
-
-    return executor(_ctx);
+    return std::make_error_code(std::errc::invalid_argument);
 }
 
 void Core::Close()
@@ -124,4 +65,3 @@ void Core::Close()
 
 } // namespace app
 } // namespace viper
-

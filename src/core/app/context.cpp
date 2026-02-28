@@ -24,81 +24,35 @@
 namespace viper {
 namespace app {
 
-template <>
-FlagInt Context::GetFlagValue<FlagInt>(const std::string& name)
+void Context::SetArgs(const option::Args& args)
 {
-    auto iter = _flags->_iFlags.find(name);
-    if (iter != _flags->_iFlags.end())
-    {
-        return iter->second;
-    }
-
-    return FlagInt();
-}
-
-template <>
-FlagBool Context::GetFlagValue<FlagBool>(const std::string& name)
-{
-    auto iter = _flags->_bFlags.find(name);
-    if (iter != _flags->_bFlags.end())
-    {
-        return iter->second;
-    }
-
-    return FlagBool();
-}
-
-template <>
-FlagString Context::GetFlagValue<FlagString>(const std::string& name)
-{
-    auto iter = _flags->_sFlags.find(name);
-    if (iter != _flags->_sFlags.end())
-    {
-        return iter->second;
-    }
-
-    return FlagString();
-}
-
-template <>
-FlagNoValue Context::GetFlagValue<FlagNoValue>(const std::string& name)
-{
-    auto iter = _flags->_nvFlags.find(name);
-    if (iter != _flags->_nvFlags.end())
-    {
-        return iter->second;
-    }
-
-    return FlagNoValue();
+    _args = args;
 }
 
 bool Context::FlagExist(const std::string& name)
 {
-    auto iter = _flags->_iFlags.find(name);
-    if (iter != _flags->_iFlags.end())
-    {
-        return true;
-    }
+    return _args.Exist(name);
+}
 
-    auto siter = _flags->_sFlags.find(name);
-    if (siter != _flags->_sFlags.end())
-    {
-        return true;
-    }
+template <>
+int Context::GetFlagValue<int>(const std::string& name)
+{
+    auto p = _args.Get(name);
+    return p ? p->GetValue<int>() : 0;
+}
 
-    auto biter = _flags->_bFlags.find(name);
-    if (biter != _flags->_bFlags.end())
-    {
-        return true;
-    }
+template <>
+bool Context::GetFlagValue<bool>(const std::string& name)
+{
+    auto p = _args.Get(name);
+    return p ? p->GetValue<bool>() : false;
+}
 
-    auto nviter = _flags->_nvFlags.find(name);
-    if (nviter != _flags->_nvFlags.end())
-    {
-        return true;
-    }
-
-    return false;
+template <>
+std::string Context::GetFlagValue<std::string>(const std::string& name)
+{
+    auto p = _args.Get(name);
+    return p ? p->GetValue<std::string>() : std::string{};
 }
 
 template <>
