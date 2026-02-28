@@ -14,7 +14,7 @@
  * limitations under the License.
  **/
 
-#include "agent/app.h"
+#include "viper/app.h"
 
 #include "internal/error.h"
 
@@ -75,7 +75,7 @@ viper::internal::ErrorCode App::GuardLoop()
         viper::assist::MilliSleep(1000);
     }
 
-    LOG_INFO("agent exited");
+    LOG_INFO("viper exited");
     return viper::internal::ErrorCode::SUCCESS;
 }
 
@@ -91,7 +91,7 @@ viper::internal::ErrorCode App::InitFlags()
     flagConfig._fullName    = "config";
     flagConfig._shortName   = 'c';
     flagConfig._description = "the config file";
-    flagConfig._value       = "./etc/agent.yml";
+    flagConfig._value       = "./etc/viper.yaml";
 
     _core->AddCommand(flagConfig);
 

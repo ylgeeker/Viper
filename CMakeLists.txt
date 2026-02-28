@@ -117,9 +117,9 @@ if(gRPC_FOUND OR EXISTS "${GRPC_PREFIX}/lib/cmake/grpc")
     set(gRPC_DIR "${GRPC_PREFIX}/lib/cmake/grpc" CACHE PATH "gRPC config dir")
 endif()
 
-# Static deps for controller/agent/transfer: one interface target linking all .a + -static-libstdc++
+# Static deps for controller/viper/transfer: one interface target linking all .a + -static-libstdc++
 # so binaries do not depend on libcurl.so, libevent.so, libprotobuf.so, libz.so, libzstd.so, libstdc++.so, libabsl_*.so
-# Abstract as COMMON_STATIC_DEPS_LIBS / viper_static_deps for agent/transfer/controller to share (prefer static, allow dynamic fallback)
+# Abstract as COMMON_STATIC_DEPS_LIBS / viper_static_deps for viper/transfer/controller to share (prefer static, allow dynamic fallback)
 set(COMMON_STATIC_DEPS_LIBS "")
 if(EXISTS "${CURL_PREFIX}/lib/libcurl.a")
     list(APPEND COMMON_STATIC_DEPS_LIBS ${CURL_PREFIX}/lib/libcurl.a)
@@ -131,7 +131,7 @@ if(EXISTS "${LIBEVENT_PREFIX}/lib/libevent_core.a")
         ${LIBEVENT_PREFIX}/lib/libevent_pthreads.a
         ${LIBEVENT_PREFIX}/lib/libevent_openssl.a)
 endif()
-# Do not add libprotobuf.a to COMMON_STATIC_DEPS_LIBS: agent/transfer/controller link via protobuf::libprotobuf
+# Do not add libprotobuf.a to COMMON_STATIC_DEPS_LIBS: viper/transfer/controller link via protobuf::libprotobuf
 # (with IMPORTED_LOCATION set to our .a when available) to avoid duplicate symbols and ensure one protobuf.
 find_file(PROTOBUF_STATIC_A NAMES libprotobuf.a PATHS ${PROTOBUF_PREFIX}/lib /usr/lib/x86_64-linux-gnu /usr/lib NO_DEFAULT_PATH)
 if(PROTOBUF_STATIC_A)
@@ -161,11 +161,11 @@ if(CPPREST_STATIC_A)
     list(APPEND COMMON_STATIC_DEPS_LIBS ${CPPREST_STATIC_A})
     set(CONTROLLER_STATIC_HAS_CPPREST TRUE CACHE BOOL "")
 endif()
-# viper_static_deps: shared target for agent/transfer/controller (prefer static, allow dynamic fallback)
+# viper_static_deps: shared target for viper/transfer/controller (prefer static, allow dynamic fallback)
 if(COMMON_STATIC_DEPS_LIBS)
     add_library(viper_static_deps INTERFACE)
     target_link_libraries(viper_static_deps INTERFACE -Wl,--start-group ${COMMON_STATIC_DEPS_LIBS} -Wl,--end-group -static-libstdc++)
-    set(CONTROLLER_USE_STATIC_DEPS TRUE CACHE BOOL "Link agent/transfer/controller with static curl, libevent, protobuf, z, zstd, cpprest, stdc++")
+    set(CONTROLLER_USE_STATIC_DEPS TRUE CACHE BOOL "Link viper/transfer/controller with static curl, libevent, protobuf, z, zstd, cpprest, stdc++")
     # Backward compat: controller_static_deps points to viper_static_deps
     add_library(controller_static_deps ALIAS viper_static_deps)
 endif()
@@ -262,8 +262,8 @@ if(OpenSSL_NEEDS_INSTALL OR Boost_NEEDS_INSTALL OR Libevent_NEEDS_INSTALL OR
 endif()
 # install_dependencies always exists; when HAS_EXTERNAL_DEPS is false it has no deps (build is no-op)
 
-# Only add core/agent/controller/transfer when deps are installed; otherwise find_package in core would fail
+# Only add core/viper/controller/transfer when deps are installed; otherwise find_package in core would fail
 if(NOT HAS_EXTERNAL_DEPS)
     add_subdirectory(src/core)
-    add_subdirectory(src/agent)
+    add_subdirectory(src/viper)
 endif()

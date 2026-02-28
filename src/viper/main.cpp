@@ -12,19 +12,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-**/
+ **/
 
-#ifndef _VIPER_INTERNAL_AGENT_ID_H_
-#define _VIPER_INTERNAL_AGENT_ID_H_
+#include "viper/app.h"
 
-#include <string>
-
-namespace viper {
-namespace internal {
-
-std::string GenerateNewAgentID();
-
+int main(int argc, char *argv[])
+{
+    auto ec = App().Run(argc, argv);
+    return (int)ec;
 }
-} // namespace viper
-#endif
-

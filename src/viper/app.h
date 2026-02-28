@@ -17,7 +17,7 @@
 #ifndef _VIPER_AGENT_APP_H_
 #define _VIPER_AGENT_APP_H_
 
-#include "agent/configuration.h"
+#include "viper/configuration.h"
 
 #include "internal/error.h"
 

@@ -1,8 +1,8 @@
-project(agent)
+project(viper)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_BIN_DIR})
 
-message("Agent Output Dir: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+message("Viper Output Dir: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../internal/*.cpp"
@@ -75,9 +75,9 @@ endif()
 # Always link protobuf via target (IMPORTED_LOCATION set to our .a when CONTROLLER_STATIC_HAS_PROTOBUF); not in viper_static_deps to avoid duplicate symbols.
 list(APPEND LIBS protobuf::libprotobuf)
 
-add_library(agent_main_group INTERFACE)
-target_link_libraries(agent_main_group INTERFACE -Wl,--start-group ${LIBS} -Wl,--end-group)
-target_link_libraries(${PROJECT_NAME} PRIVATE agent_main_group)
+add_library(viper_main_group INTERFACE)
+target_link_libraries(viper_main_group INTERFACE -Wl,--start-group ${LIBS} -Wl,--end-group)
+target_link_libraries(${PROJECT_NAME} PRIVATE viper_main_group)
 
 # z/zstd handling (same as controller)
 if(CONTROLLER_USE_STATIC_DEPS)

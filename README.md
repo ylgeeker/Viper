@@ -1,9 +1,5 @@
-# Viper
-- Viper is a very unique project. There is no specific goal. Just write whatever comes to mind!.
-- Viper 是一个很独特的项目，没有具体的目标，想到什么就写什么！
+# Viper 是什么？
+- 一个辅助运维对OS进行配置的工具。
 
-
-## Project Objectives
-- Not aiming for an impressive project, only for clarity of mind.
-- 不求项目牛逼，只求念头通达！
-
+# Viper 项目背景？
+- 作者非常喜欢C++这门语言，现在工作上用的少了，于是就想在工作之余用它做一个有价值的产品。

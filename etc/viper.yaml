@@ -1,4 +1,4 @@
-name: agent
+name: viper
 version: v1.0
 
 controller:
@@ -7,7 +7,7 @@ controller:
       port: 26688
 
 log:
-  path: ./logs/agent.log
+  path: ./logs/viper.log
   level: debug
   file-count: 10
   file-sizeMB: 100
