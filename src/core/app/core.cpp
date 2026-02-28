@@ -14,10 +14,10 @@
  * limitations under the License.
 **/
 
-#include "core/application/core.h"
-#include "core/application/config_file.h"
-#include "core/application/context.h"
-#include "core/application/flag.h"
+#include "core/app/core.h"
+#include "core/app/config_file.h"
+#include "core/app/context.h"
+#include "core/app/flag.h"
 
 #include <system_error>
 

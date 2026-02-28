@@ -21,7 +21,7 @@
 
 #include "internal/error.h"
 
-#include "core/application/core.h"
+#include "core/app/core.h"
 
 class App final
 {

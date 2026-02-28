@@ -46,7 +46,7 @@ if(CONTROLLER_STATIC_HAS_PROTOBUF AND TARGET protobuf::libprotobuf AND EXISTS "$
         IMPORTED_LOCATION_RELEASE "${PROTOBUF_PREFIX}/lib/libprotobuf.a")
 endif()
 
-list(APPEND LIBS core)
+list(APPEND LIBS vipercore)
 list(APPEND LIBS yaml-cpp)
 list(APPEND LIBS pthread)
 list(APPEND LIBS stdc++fs)

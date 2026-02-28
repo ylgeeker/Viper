@@ -17,7 +17,7 @@
 #ifndef _VIPER_AGENT_CONFIG_H_
 #define _VIPER_AGENT_CONFIG_H_
 
-#include "core/application/context.h"
+#include "core/app/context.h"
 
 #include <cstdint>
 #include <string>

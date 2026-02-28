@@ -14,7 +14,7 @@
  * limitations under the License.
 **/
 
-#include "core/application/flag.h"
+#include "core/app/flag.h"
 
 namespace viper {
 namespace app {

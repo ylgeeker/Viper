@@ -14,7 +14,7 @@
  * limitations under the License.
 **/
 
-#include "core/application/config_file.h"
+#include "core/app/config_file.h"
 #include "core/assist/macro.h"
 #include "core/error/error.h"
 #include "core/log/log.h"

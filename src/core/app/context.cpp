@@ -14,7 +14,7 @@
  * limitations under the License.
 **/
 
-#include "core/application/context.h"
+#include "core/app/context.h"
 #include "core/assist/string.h"
 #include "core/error/error.h"
 

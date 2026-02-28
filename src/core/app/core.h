@@ -17,8 +17,8 @@
 #ifndef _VIPER_CORE_APP_CORE_H_
 #define _VIPER_CORE_APP_CORE_H_
 
-#include "core/application/context.h"
-#include "core/application/env.h"
+#include "core/app/context.h"
+#include "core/app/env.h"
 #include "third-party/cmdline/cmdline.h"
 
 #include <functional>

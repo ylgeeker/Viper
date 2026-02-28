@@ -17,10 +17,10 @@
 #ifndef _VIPER_CORE_APP_CONTEXT_H_
 #define _VIPER_CORE_APP_CONTEXT_H_
 
-#include "core/application/config_file.h"
-#include "core/application/flag.h"
-#include "core/application/service_discovery.h"
-#include "core/application/service_registry.h"
+#include "core/app/config_file.h"
+#include "core/app/flag.h"
+#include "core/app/service_discovery.h"
+#include "core/app/service_registry.h"
 #include "core/container/safe_map.h"
 
 #include <cstdint>

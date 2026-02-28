@@ -1,4 +1,4 @@
-project(core)
+project(vipercore)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_LIB_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_LIB_DIR})
@@ -81,8 +81,8 @@ endif()
 set(ETCD_CPP_FOUND ${ETCD_CPP_FOUND} PARENT_SCOPE)
 if(NOT ETCD_CPP_FOUND)
     list(REMOVE_ITEM SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/application/service_registry.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/application/service_discovery.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/app/service_registry.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/app/service_discovery.cpp
     )
 endif()
 

@@ -14,7 +14,7 @@
  * limitations under the License.
 **/
 
-#include "core/application/service_discovery.h"
+#include "core/app/service_discovery.h"
 #include "core/error/error.h"
 #include "core/log/log.h"
 

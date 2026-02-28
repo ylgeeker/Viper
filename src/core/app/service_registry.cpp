@@ -14,7 +14,7 @@
  * limitations under the License.
 **/
 
-#include "core/application/service_registry.h"
+#include "core/app/service_registry.h"
 #include "core/assist/macro.h"
 #include "core/assist/math.h"
 #include "core/assist/time.h"
