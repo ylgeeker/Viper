@@ -26,10 +26,10 @@
 
 // clang-format off
 
-#define VIPER_APP_NAME                      "viper"
+#define VIPER_APP_NAME                      "Viper"
 #define VIPER_PROMPT                        VIPER_APP_NAME "> "
 #define VIPER_MSG_EXITED                    VIPER_APP_NAME " exited"
-#define VIPER_MSG_INTERACTIVE_EXITED        VIPER_APP_NAME " interactive mode exited"
+#define VIPER_MSG_INTERACTIVE_EXITED        "Bye!"
 
 #define VIPER_LOG_LEVEL_DFT                 "debug"
 #define VIPER_LOG_PATH_DFT                  "/var/log/os-artificer/viper/"
