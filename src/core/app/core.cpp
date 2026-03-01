@@ -29,7 +29,7 @@ Core::Core()
     _ctx->_fileCfg    = std::make_shared<ConfigFile>();
     _root             = std::make_shared<option::Command>();
     _root->_use       = "viper";
-    _root->_short     = "Viper application";
+    _root->_short     = "Viper";
     _interactiveRoot  = std::make_shared<option::Command>();
     _interactiveRoot->_use   = "viper";
     _interactiveRoot->_short = "Viper (interactive)";

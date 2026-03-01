@@ -17,12 +17,6 @@
 // local header file
 #include "viper/app.h"
 
-// third party header file
-
-// c++ standard header file
-
-// c standard header file
-
 int main(int argc, char *argv[])
 {
     auto ec = App().Run(argc, argv);

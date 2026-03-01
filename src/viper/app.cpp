@@ -16,6 +16,11 @@
 
 // local header file
 #include "viper/app.h"
+#include "viper/cmds.h"
+
+#include "internal/error.h"
+
+// third party header file
 #include "core/app/core.h"
 #include "core/assist/time.h"
 #include "core/core.h"
@@ -23,20 +28,14 @@
 #include "core/log/log.h"
 #include "core/option/value.h"
 #include "core/text/strings.h"
-#include "internal/error.h"
-#include "viper/cmds.h"
-
-// third party header file
 
 // c++ standard header file
+#include <cstdint>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <system_error>
 #include <vector>
-
-// c standard header file
-#include <cstdint>
 
 App::App()
 {
@@ -100,7 +99,7 @@ viper::internal::ErrorCode App::GuardLoop()
         viper::assist::MilliSleep(1000);
     }
 
-    LOG_INFO("viper exited");
+    LOG_INFO(VIPER_MSG_EXITED);
     return viper::internal::ErrorCode::SUCCESS;
 }
 
@@ -168,10 +167,10 @@ viper::internal::ErrorCode App::LoadConfig(viper::app::ContextPtr ctx)
     _localConfig->_version = ctx->GetFileConfig<std::string>("version");
 
     // parse log
-    _localConfig->_logLevel      = ctx->GetFileConfig<std::string>("log.level", VIPER_AGENT_LOG_LEVEL_DFT);
-    _localConfig->_logPath       = ctx->GetFileConfig<std::string>("log.path", VIPER_AGENT_LOG_PATH_DFT);
-    _localConfig->_maxFileCount  = ctx->GetFileConfig<uint32_t>("log.file-count", VIPER_AGENT_LOG_FILE_MAX_COUNT_DFT);
-    _localConfig->_maxFileSizeMB = ctx->GetFileConfig<uint32_t>("log.file-sizeMB", VIPER_AGENT_LOG_FILE_MAX_FILE_SIZE_MB_DFT);
+    _localConfig->_logLevel      = ctx->GetFileConfig<std::string>("log.level", VIPER_LOG_LEVEL_DFT);   
+    _localConfig->_logPath       = ctx->GetFileConfig<std::string>("log.path", VIPER_LOG_PATH_DFT);
+    _localConfig->_maxFileCount  = ctx->GetFileConfig<uint32_t>("log.file-count", VIPER_LOG_FILE_MAX_COUNT_DFT);
+    _localConfig->_maxFileSizeMB = ctx->GetFileConfig<uint32_t>("log.file-sizeMB", VIPER_LOG_FILE_MAX_FILE_SIZE_MB_DFT);
 
     return viper::internal::ErrorCode::SUCCESS;
 }
@@ -185,7 +184,7 @@ std::error_code App::Execute(viper::app::ContextPtr ctx)
 
     if (interactive && noConfig)
     {
-        _localConfig->_name    = "viper";
+        _localConfig->_name    = VIPER_APP_NAME;
         _localConfig->_version = "interactive";
         return RunInteractiveLoop();
     }
@@ -219,7 +218,7 @@ viper::internal::ErrorCode App::RunInteractiveLoop()
 
     while (true)
     {
-        std::cout << "viper> " << std::flush;
+        std::cout << VIPER_PROMPT << std::flush;
         if (!std::getline(std::cin, line))
         {
             break;
@@ -228,7 +227,7 @@ viper::internal::ErrorCode App::RunInteractiveLoop()
         std::istringstream iss(line);
         std::string        token;
         argvStorage.clear();
-        argvStorage.push_back("viper");
+        argvStorage.push_back(VIPER_APP_NAME);
         while (iss >> token)
         {
             argvStorage.push_back(token);
@@ -255,6 +254,6 @@ viper::internal::ErrorCode App::RunInteractiveLoop()
         (void)_core->ExecuteArgs(static_cast<int>(argvPtrs.size()), argvPtrs.data());
     }
 
-    std::cout << "viper interactive mode exited" << std::endl;
+    std::cout << VIPER_MSG_INTERACTIVE_EXITED << std::endl;
     return viper::internal::ErrorCode::SUCCESS;
 }

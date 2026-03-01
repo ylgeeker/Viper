@@ -21,17 +21,20 @@
 #include "core/app/context.h"
 
 // c++ standard header file
-#include <string>
-
-// c standard header file
 #include <cstdint>
+#include <string>
 
 // clang-format off
 
-#define VIPER_AGENT_LOG_LEVEL_DFT                 "debug"
-#define VIPER_AGENT_LOG_PATH_DFT                  "/var/log/viper/"
-#define VIPER_AGENT_LOG_FILE_MAX_COUNT_DFT        10
-#define VIPER_AGENT_LOG_FILE_MAX_FILE_SIZE_MB_DFT 100
+#define VIPER_APP_NAME                      "viper"
+#define VIPER_PROMPT                        VIPER_APP_NAME "> "
+#define VIPER_MSG_EXITED                    VIPER_APP_NAME " exited"
+#define VIPER_MSG_INTERACTIVE_EXITED        VIPER_APP_NAME " interactive mode exited"
+
+#define VIPER_LOG_LEVEL_DFT                 "debug"
+#define VIPER_LOG_PATH_DFT                  "/var/log/os-artificer/viper/"
+#define VIPER_LOG_FILE_MAX_COUNT_DFT        10
+#define VIPER_LOG_FILE_MAX_FILE_SIZE_MB_DFT 100
 
 // clang-format on
 
@@ -39,10 +42,10 @@ struct Configuration
 {
     std::string            _name;
     std::string            _version;
-    std::string            _logPath       = VIPER_AGENT_LOG_PATH_DFT;
-    std::string            _logLevel      = VIPER_AGENT_LOG_LEVEL_DFT;
-    uint32_t               _maxFileCount  = VIPER_AGENT_LOG_FILE_MAX_COUNT_DFT;
-    uint32_t               _maxFileSizeMB = VIPER_AGENT_LOG_FILE_MAX_FILE_SIZE_MB_DFT;
+    std::string            _logPath       = VIPER_LOG_PATH_DFT;
+    std::string            _logLevel      = VIPER_LOG_LEVEL_DFT;
+    uint32_t               _maxFileCount  = VIPER_LOG_FILE_MAX_COUNT_DFT;
+    uint32_t               _maxFileSizeMB = VIPER_LOG_FILE_MAX_FILE_SIZE_MB_DFT;
     viper::app::ContextPtr _ctx;
 };
 

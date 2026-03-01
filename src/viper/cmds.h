@@ -18,8 +18,9 @@
 #define _VIPER_CMDS_H_
 
 // local header file
-#include "internal/error.h"
 #include "viper/configuration.h"
+
+#include "internal/error.h"
 
 // third party header file
 #include "core/app/core.h"
