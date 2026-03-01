@@ -60,6 +60,16 @@ public:
     void AddCommand(std::shared_ptr<option::Command> cmd);
 
     /**
+     * @brief AddInteractiveCommand register a subcommand for interactive mode only.
+     */
+    void AddInteractiveCommand(const std::string& name, const std::string& shortDesc, CommandHandler handler);
+
+    /**
+     * @brief AddInteractiveCommand register a pre-built subcommand for interactive mode only.
+     */
+    void AddInteractiveCommand(std::shared_ptr<option::Command> cmd);
+
+    /**
      * @brief GetContext return the shared context (e.g. for use in custom command _run with SetArgs).
      */
     ContextPtr GetContext() const;
@@ -75,6 +85,14 @@ public:
     std::error_code Run(int argc, char* argv[], CommandHandler executor);
 
     /**
+     * @brief ExecuteArgs parse and execute a single command line (e.g. for interactive mode).
+     * @param argc argument count
+     * @param argv argument vector (argv[0] typically "viper")
+     * @return exit code as from Command::Execute (0 for success)
+     */
+    int ExecuteArgs(int argc, char* argv[]);
+
+    /**
      * @brief Close close the application
      */
     void Close();
@@ -84,6 +102,7 @@ private:
     EnvPtr                          _env;
     ConfigFilePtr                   _file;
     std::shared_ptr<option::Command> _root;
+    std::shared_ptr<option::Command> _interactiveRoot;
 };
 
 using CorePtr = std::shared_ptr<Core>;

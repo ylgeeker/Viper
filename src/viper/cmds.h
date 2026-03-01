@@ -26,4 +26,6 @@
 
 viper::internal::ErrorCode RegisterCommands(viper::app::CorePtr core, ConfigurationPtr config);
 
+viper::internal::ErrorCode RegisterInteractiveCommands(viper::app::CorePtr core, ConfigurationPtr config);
+
 #endif

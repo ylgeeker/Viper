@@ -12,14 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-**/
+ **/
 
 #ifndef _VIPER_AGENT_CONFIG_H_
 #define _VIPER_AGENT_CONFIG_H_
 
 // local header file
 #include "core/app/context.h"
-
 
 // c++ standard header file
 #include <string>
@@ -38,14 +37,12 @@
 
 struct Configuration
 {
-    std::string          _name;
-    std::string          _version;
-    std::string          _controllerRemoteIP;
-    uint16_t             _controllerRemotePort = 0;
-    std::string          _logPath              = VIPER_AGENT_LOG_PATH_DFT;
-    std::string          _logLevel             = VIPER_AGENT_LOG_LEVEL_DFT;
-    uint32_t             _maxFileCount         = VIPER_AGENT_LOG_FILE_MAX_COUNT_DFT;
-    uint32_t             _maxFileSizeMB        = VIPER_AGENT_LOG_FILE_MAX_FILE_SIZE_MB_DFT;
+    std::string            _name;
+    std::string            _version;
+    std::string            _logPath       = VIPER_AGENT_LOG_PATH_DFT;
+    std::string            _logLevel      = VIPER_AGENT_LOG_LEVEL_DFT;
+    uint32_t               _maxFileCount  = VIPER_AGENT_LOG_FILE_MAX_COUNT_DFT;
+    uint32_t               _maxFileSizeMB = VIPER_AGENT_LOG_FILE_MAX_FILE_SIZE_MB_DFT;
     viper::app::ContextPtr _ctx;
 };
 
@@ -54,10 +51,6 @@ static std::string DumpConfig(const Configuration& cfg)
     std::stringstream ss;
     ss << "\nname: " << cfg._name
        << "\nversion: " << cfg._version;
-
-    ss << "\ncontroller endpoint:"
-       << "\n\tip:" << cfg._controllerRemoteIP
-       << "\n\tport:" << cfg._controllerRemotePort;
 
     ss << "\nlog.path: " << cfg._logPath
        << "\nlog.level: " << cfg._logLevel

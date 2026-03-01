@@ -22,6 +22,7 @@
 #include <iomanip>
 #include <ios>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <string_view>
 
@@ -36,14 +37,44 @@ Command::~Command()
 template <typename T>
 static void PrintFlags(const std::vector<std::shared_ptr<Flag<T>>>& flags)
 {
+    if (flags.empty())
+    {
+        return;
+    }
+
+    size_t maxFlagLen = 0;
+    size_t maxTypeLen = 0;
     for (const auto& flag : flags)
     {
-        std::cout << "  -" << flag->_shorthand
-                  << ", --" << std::left << std::setw(8) << flag->_name
-                  << std::right << std::setw(8) << flag->_valueType << " "
-                  << std::setw(8) << flag->_usage
-                  << " (default: " << flag->_value << ")"
-                  << std::endl;
+        size_t flagLen = (2 + 1 + 2 + 2 + flag->_shorthand.length() + flag->_name.length()); // "  -" + short + ", --" + name
+        size_t typeLen = flag->_valueType.length();
+        maxFlagLen = std::max(maxFlagLen, flagLen);
+        maxTypeLen = std::max(maxTypeLen, typeLen);
+    }
+
+    const int flagColumnWidth = static_cast<int>(maxFlagLen) + 2;
+    const int typeColumnWidth = static_cast<int>(maxTypeLen) + 2;
+    const std::string shortIndent(2 + flagColumnWidth + 1 + typeColumnWidth + 1, ' ');
+
+    for (const auto& flag : flags)
+    {
+        std::string flagStr = "  -" + flag->_shorthand + ", --" + flag->_name;
+        std::cout << std::left << std::setw(flagColumnWidth) << flagStr << " "
+                  << std::left << std::setw(typeColumnWidth) << flag->_valueType << " ";
+
+        std::ostringstream oss;
+        oss << flag->_usage << " (default: " << flag->_value << ")";
+        std::vector<std::string> lines = text::Split(oss.str(), '\n');
+        if (lines.empty())
+        {
+            std::cout << std::endl;
+            continue;
+        }
+        std::cout << lines[0] << std::endl;
+        for (size_t i = 1; i < lines.size(); ++i)
+        {
+            std::cout << shortIndent << lines[i] << std::endl;
+        }
     }
 }
 
@@ -326,6 +357,12 @@ int Command::Execute(int argc, char* argv[])
                 value = args[++i];
             }
 
+            if (value.empty())
+            {
+                Help();
+                return 0;
+            }
+
             auto it = _subCmds.find(std::string(value));
             if (it == _subCmds.end())
             {
@@ -400,6 +437,12 @@ bool Command::UpdateFlagValue(std::shared_ptr<Flag<Value>> flagVal, Args& args, 
 
     if (flagVal->_value.IsBool())
     {
+        if (value.empty())
+        {
+            flagVal->_value = true;
+            args.Set(flagVal->_name, flagVal->_value);
+            return true;
+        }
         try
         {
             flagVal->_value = text::ToBool(value);

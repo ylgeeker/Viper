@@ -25,11 +25,14 @@ namespace app {
 
 Core::Core()
 {
-    _ctx         = std::make_shared<Context>();
-    _ctx->_fileCfg = std::make_shared<ConfigFile>();
-    _root        = std::make_shared<option::Command>();
-    _root->_use  = "viper";
-    _root->_short = "Viper application";
+    _ctx              = std::make_shared<Context>();
+    _ctx->_fileCfg    = std::make_shared<ConfigFile>();
+    _root             = std::make_shared<option::Command>();
+    _root->_use       = "viper";
+    _root->_short     = "Viper application";
+    _interactiveRoot  = std::make_shared<option::Command>();
+    _interactiveRoot->_use   = "viper";
+    _interactiveRoot->_short = "Viper (interactive)";
 }
 
 Core::~Core()
@@ -61,6 +64,24 @@ void Core::AddCommand(std::shared_ptr<option::Command> cmd)
     _root->AddCommand(cmd);
 }
 
+void Core::AddInteractiveCommand(const std::string& name, const std::string& shortDesc, CommandHandler handler)
+{
+    auto cmd = std::make_shared<option::Command>();
+    cmd->_use   = name;
+    cmd->_short = shortDesc;
+    cmd->_run   = [this, handler](const option::Args& args) {
+        _ctx->SetArgs(args);
+        std::error_code ec = handler(_ctx);
+        return ec ? 1 : 0;
+    };
+    _interactiveRoot->AddCommand(cmd);
+}
+
+void Core::AddInteractiveCommand(std::shared_ptr<option::Command> cmd)
+{
+    _interactiveRoot->AddCommand(cmd);
+}
+
 ContextPtr Core::GetContext() const
 {
     return _ctx;
@@ -80,6 +101,11 @@ std::error_code Core::Run(int argc, char* argv[], CommandHandler executor)
         return std::error_code{};
     }
     return std::make_error_code(std::errc::invalid_argument);
+}
+
+int Core::ExecuteArgs(int argc, char* argv[])
+{
+    return _interactiveRoot->Execute(argc, argv);
 }
 
 void Core::Close()

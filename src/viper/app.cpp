@@ -15,22 +15,25 @@
  **/
 
 // local header file
+#include "viper/app.h"
 #include "core/app/core.h"
 #include "core/assist/time.h"
 #include "core/core.h"
 #include "core/error/error.h"
 #include "core/log/log.h"
 #include "core/option/value.h"
+#include "core/text/strings.h"
 #include "internal/error.h"
-#include "viper/app.h"
 #include "viper/cmds.h"
 
 // third party header file
 
 // c++ standard header file
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <system_error>
+#include <vector>
 
 // c standard header file
 #include <cstdint>
@@ -46,7 +49,7 @@ App::~App()
     Close();
 }
 
-viper::internal::ErrorCode App::Run(int argc, char *argv[])
+viper::internal::ErrorCode App::Run(int argc, char* argv[])
 {
     auto ec = viper::Init();
     if (!viper::error::IsSuccess(ec))
@@ -63,6 +66,12 @@ viper::internal::ErrorCode App::Run(int argc, char *argv[])
     }
 
     ec = InitCommands();
+    if (!viper::error::IsSuccess(ec))
+    {
+        return viper::internal::ErrorCode::ERROR;
+    }
+
+    ec = InitInteractiveCommands();
     if (!viper::error::IsSuccess(ec))
     {
         return viper::internal::ErrorCode::ERROR;
@@ -102,7 +111,8 @@ void App::DumpConfiguration()
 
 viper::internal::ErrorCode App::InitFlags()
 {
-    _core->AddFlag("config", 'c', "the config file", viper::option::Value("./etc/viper.yaml"));
+    _core->AddFlag("config", 'c', "the config file", viper::option::Value(""));
+    _core->AddFlag("interactive", 'i', "run in interactive mode", viper::option::Value(false));
     return viper::internal::ErrorCode::SUCCESS;
 }
 
@@ -129,6 +139,11 @@ viper::internal::ErrorCode App::InitCommands()
     return RegisterCommands(_core, _localConfig);
 }
 
+viper::internal::ErrorCode App::InitInteractiveCommands()
+{
+    return RegisterInteractiveCommands(_core, _localConfig);
+}
+
 viper::internal::ErrorCode App::LoadConfig(viper::app::ContextPtr ctx)
 {
     _localConfig->_ctx = ctx;
@@ -144,17 +159,13 @@ viper::internal::ErrorCode App::LoadConfig(viper::app::ContextPtr ctx)
     auto ec = ctx->LoadConfig(configPath);
     if (!viper::internal::IsSuccess(ec))
     {
-        LOG_STD("can not load config file(%s)", configPath.c_str());
+        LOG_STD("can not load config file: %s", configPath.c_str());
         return viper::internal::ErrorCode::ERROR;
     }
 
     // parse base
     _localConfig->_name    = ctx->GetFileConfig<std::string>("name");
     _localConfig->_version = ctx->GetFileConfig<std::string>("version");
-
-    // parse controller endpoint
-    _localConfig->_controllerRemoteIP   = ctx->GetFileConfig<std::string>("controller.endpoint.ip", "127.0.0.1");
-    _localConfig->_controllerRemotePort = ctx->GetFileConfig<uint16_t>("controller.endpoint.port", 26688);
 
     // parse log
     _localConfig->_logLevel      = ctx->GetFileConfig<std::string>("log.level", VIPER_AGENT_LOG_LEVEL_DFT);
@@ -168,6 +179,16 @@ viper::internal::ErrorCode App::LoadConfig(viper::app::ContextPtr ctx)
 std::error_code App::Execute(viper::app::ContextPtr ctx)
 {
     _localConfig->_ctx = ctx;
+
+    const bool interactive = ctx->FlagExist("interactive") && ctx->GetFlagValue<bool>("interactive");
+    const bool noConfig    = !ctx->FlagExist("config") || ctx->GetFlagValue<std::string>("config").empty();
+
+    if (interactive && noConfig)
+    {
+        _localConfig->_name    = "viper";
+        _localConfig->_version = "interactive";
+        return RunInteractiveLoop();
+    }
 
     auto ec = LoadConfig(ctx);
     if (!viper::internal::IsSuccess(ec))
@@ -183,5 +204,57 @@ std::error_code App::Execute(viper::app::ContextPtr ctx)
 
     DumpConfiguration();
 
+    if (interactive)
+    {
+        return RunInteractiveLoop();
+    }
     return GuardLoop();
+}
+
+viper::internal::ErrorCode App::RunInteractiveLoop()
+{
+    std::string              line;
+    std::vector<std::string> argvStorage;
+    std::vector<char*>       argvPtrs;
+
+    while (true)
+    {
+        std::cout << "viper> " << std::flush;
+        if (!std::getline(std::cin, line))
+        {
+            break;
+        }
+
+        std::istringstream iss(line);
+        std::string        token;
+        argvStorage.clear();
+        argvStorage.push_back("viper");
+        while (iss >> token)
+        {
+            argvStorage.push_back(token);
+        }
+
+        if (argvStorage.size() == 1)
+        {
+            continue;
+        }
+
+        const std::string& first      = argvStorage[1];
+        const std::string  firstLower = viper::text::ToLower(first);
+        if (firstLower == "exit" || firstLower == "quit")
+        {
+            break;
+        }
+
+        argvPtrs.clear();
+        for (auto& s : argvStorage)
+        {
+            argvPtrs.push_back(s.data());
+        }
+
+        (void)_core->ExecuteArgs(static_cast<int>(argvPtrs.size()), argvPtrs.data());
+    }
+
+    std::cout << "viper interactive mode exited" << std::endl;
+    return viper::internal::ErrorCode::SUCCESS;
 }

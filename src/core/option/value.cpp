@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-**/
+ **/
 
 #include "core/option/value.h"
 
@@ -22,22 +22,22 @@
 namespace viper::option {
 
 Value::Value(int val)
-    : _value(val) {};
+    : _value(val){};
 
 Value::Value(float val)
-    : _value(val) {};
+    : _value(val){};
 
 Value::Value(double val)
-    : _value(val) {};
+    : _value(val){};
 
 Value::Value(bool val)
-    : _value() {};
+    : _value(val){};
 
 Value::Value(const char* val)
-    : _value(val) {};
+    : _value(val){};
 
 Value::Value(const std::string& val)
-    : _value(val) {};
+    : _value(val){};
 
 Value& Value::operator=(int val)
 {

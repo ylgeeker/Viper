@@ -110,6 +110,11 @@ void File::Reopen(bool truncate)
 
 bool File::Flush()
 {
+    if (!_fd)
+    {
+        return true;
+    }
+
     if (std::fflush(_fd))
     {
         Reopen(false);
@@ -142,6 +147,11 @@ void File::Close()
 
 bool File::Write(const spdlog::memory_buf_t& buffer)
 {
+    if (!_fd)
+    {
+        return false;
+    }
+
     std::size_t size = buffer.size();
     const char* data = buffer.data();
 

@@ -36,9 +36,11 @@ public:
 
 private:
     viper::internal::ErrorCode GuardLoop();
+    viper::internal::ErrorCode RunInteractiveLoop();
     void                       DumpConfiguration();
     viper::internal::ErrorCode InitFlags();
     viper::internal::ErrorCode InitCommands();
+    viper::internal::ErrorCode InitInteractiveCommands();
     viper::internal::ErrorCode InitLogs();
     viper::internal::ErrorCode InitController();
     viper::internal::ErrorCode LoadConfig(viper::app::ContextPtr ctx);
