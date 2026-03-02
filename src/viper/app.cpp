@@ -167,7 +167,7 @@ viper::internal::ErrorCode App::LoadConfig(viper::app::ContextPtr ctx)
     _localConfig->_version = ctx->GetFileConfig<std::string>("version");
 
     // parse log
-    _localConfig->_logLevel      = ctx->GetFileConfig<std::string>("log.level", VIPER_LOG_LEVEL_DFT);   
+    _localConfig->_logLevel      = ctx->GetFileConfig<std::string>("log.level", VIPER_LOG_LEVEL_DFT);
     _localConfig->_logPath       = ctx->GetFileConfig<std::string>("log.path", VIPER_LOG_PATH_DFT);
     _localConfig->_maxFileCount  = ctx->GetFileConfig<uint32_t>("log.file-count", VIPER_LOG_FILE_MAX_COUNT_DFT);
     _localConfig->_maxFileSizeMB = ctx->GetFileConfig<uint32_t>("log.file-sizeMB", VIPER_LOG_FILE_MAX_FILE_SIZE_MB_DFT);
@@ -215,10 +215,20 @@ viper::internal::ErrorCode App::RunInteractiveLoop()
     std::string              line;
     std::vector<std::string> argvStorage;
     std::vector<char*>       argvPtrs;
+    std::vector<std::string> contextStack;
 
     while (true)
     {
-        std::cout << VIPER_PROMPT << std::flush;
+        // Prompt format: Viper> or Viper/show> or Viper/show/foo>
+        std::string prompt = VIPER_APP_NAME;
+        for (const auto& c : contextStack)
+        {
+            prompt += "/";
+            prompt += c;
+        }
+        prompt += "> ";
+        std::cout << prompt << std::flush;
+
         if (!std::getline(std::cin, line))
         {
             break;
@@ -245,12 +255,68 @@ viper::internal::ErrorCode App::RunInteractiveLoop()
             break;
         }
 
+        // Resolve current context (interactive root, or follow contextStack)
+        auto current = _core->GetInteractiveRoot();
+        for (const auto& name : contextStack)
+        {
+            current = current->GetSubcommand(name);
+            if (!current)
+            {
+                break;
+            }
+        }
+
+        if (firstLower == "use")
+        {
+            if (argvStorage.size() < 3)
+            {
+                std::cout << "use <context>" << std::endl;
+                continue;
+            }
+            const std::string ctxName = argvStorage[2];
+            auto              sub     = current ? current->GetSubcommand(ctxName) : nullptr;
+            if (!sub)
+            {
+                std::cout << "unknown context: " << ctxName << std::endl;
+                continue;
+            }
+            if (!sub->HasSubcommands())
+            {
+                std::cout << "context has no subcommands: " << ctxName << std::endl;
+                continue;
+            }
+            contextStack.push_back(ctxName);
+            continue;
+        }
+
+        if (firstLower == "back")
+        {
+            if (contextStack.empty())
+            {
+                std::cout << "already at root" << std::endl;
+                continue;
+            }
+            contextStack.pop_back();
+            continue;
+        }
+
+        // Build full argv: [program, ...contextStack, ...user tokens]
+        std::vector<std::string> fullArgs;
+        fullArgs.push_back(VIPER_APP_NAME);
+        for (const auto& c : contextStack)
+        {
+            fullArgs.push_back(c);
+        }
+        for (size_t i = 1; i < argvStorage.size(); ++i)
+        {
+            fullArgs.push_back(argvStorage[i]);
+        }
+
         argvPtrs.clear();
-        for (auto& s : argvStorage)
+        for (auto& s : fullArgs)
         {
             argvPtrs.push_back(s.data());
         }
-
         (void)_core->ExecuteArgs(static_cast<int>(argvPtrs.size()), argvPtrs.data());
     }
 

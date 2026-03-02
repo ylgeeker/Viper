@@ -87,6 +87,11 @@ ContextPtr Core::GetContext() const
     return _ctx;
 }
 
+std::shared_ptr<option::Command> Core::GetInteractiveRoot() const
+{
+    return _interactiveRoot;
+}
+
 std::error_code Core::Run(int argc, char* argv[], CommandHandler executor)
 {
     _root->_run = [this, executor](const option::Args& args) {

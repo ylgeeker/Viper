@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-**/
+ **/
 
 #include "core/option/command.h"
 #include "core/option/value.h"
@@ -48,12 +48,12 @@ static void PrintFlags(const std::vector<std::shared_ptr<Flag<T>>>& flags)
     {
         size_t flagLen = (2 + 1 + 2 + 2 + flag->_shorthand.length() + flag->_name.length()); // "  -" + short + ", --" + name
         size_t typeLen = flag->_valueType.length();
-        maxFlagLen = std::max(maxFlagLen, flagLen);
-        maxTypeLen = std::max(maxTypeLen, typeLen);
+        maxFlagLen     = std::max(maxFlagLen, flagLen);
+        maxTypeLen     = std::max(maxTypeLen, typeLen);
     }
 
-    const int flagColumnWidth = static_cast<int>(maxFlagLen) + 2;
-    const int typeColumnWidth = static_cast<int>(maxTypeLen) + 2;
+    const int         flagColumnWidth = static_cast<int>(maxFlagLen) + 2;
+    const int         typeColumnWidth = static_cast<int>(maxTypeLen) + 2;
     const std::string shortIndent(2 + flagColumnWidth + 1 + typeColumnWidth + 1, ' ');
 
     for (const auto& flag : flags)
@@ -91,7 +91,7 @@ static void PrintCommands(const std::map<std::string, std::shared_ptr<Command>>&
         maxNameLen = std::max(maxNameLen, cmd.second->_use.length());
     }
 
-    const int nameColumnWidth = static_cast<int>(maxNameLen) + 2;
+    const int         nameColumnWidth = static_cast<int>(maxNameLen) + 2;
     const std::string indent(4 + nameColumnWidth, ' ');
 
     auto printOne = [&](const std::shared_ptr<Command>& c) {
@@ -118,7 +118,7 @@ static void PrintCommands(const std::map<std::string, std::shared_ptr<Command>>&
         }
         printOne(cmd.second);
     }
-    
+
     if (itHelp != cmds.end())
     {
         printOne(itHelp->second);
@@ -512,6 +512,21 @@ void Command::Help(std::string_view cmdName)
 bool Command::HasFlags()
 {
     return !_flagVals.empty();
+}
+
+std::shared_ptr<Command> Command::GetSubcommand(const std::string& name) const
+{
+    auto it = _subCmds.find(name);
+    if (it != _subCmds.end())
+    {
+        return it->second;
+    }
+    return nullptr;
+}
+
+bool Command::HasSubcommands() const
+{
+    return !_subCmds.empty();
 }
 
 } // namespace viper::option

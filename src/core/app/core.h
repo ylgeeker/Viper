@@ -75,6 +75,11 @@ public:
     ContextPtr GetContext() const;
 
     /**
+     * @brief GetInteractiveRoot return the root command for interactive mode (for context navigation).
+     */
+    std::shared_ptr<option::Command> GetInteractiveRoot() const;
+
+    /**
      * @brief Run parse argv, fill context with parsed args, and call executor.
      *
      * @param argc the argv count

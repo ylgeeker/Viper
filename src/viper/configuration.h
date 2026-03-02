@@ -26,7 +26,7 @@
 
 // clang-format off
 
-#define VIPER_APP_NAME                      "Viper"
+#define VIPER_APP_NAME                      "VIPER"
 #define VIPER_PROMPT                        VIPER_APP_NAME "> "
 #define VIPER_MSG_EXITED                    VIPER_APP_NAME " exited"
 #define VIPER_MSG_INTERACTIVE_EXITED        "Bye!"

@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-**/
+ **/
 
 #ifndef _VIPER_OPTION_COMMAND_H_
 #define _VIPER_OPTION_COMMAND_H_
@@ -60,6 +60,12 @@ public:
     /// Parse `argv` and run the appropriate command/subcommand.
     /// Returns the exit code produced by the invoked command handler.
     int Execute(int argc, char* argv[]);
+
+    /// Return the subcommand with the given name, or nullptr if not found.
+    std::shared_ptr<Command> GetSubcommand(const std::string& name) const;
+
+    /// Return true if this command has at least one subcommand.
+    bool HasSubcommands() const;
 
 private:
     /// Find the flag using the flag name or flag short name.
