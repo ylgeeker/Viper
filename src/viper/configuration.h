@@ -14,8 +14,8 @@
  * limitations under the License.
  **/
 
-#ifndef _VIPER_AGENT_CONFIG_H_
-#define _VIPER_AGENT_CONFIG_H_
+#ifndef _VIPER_CONFIGURATION_H_
+#define _VIPER_CONFIGURATION_H_
 
 // local header file
 #include "core/app/context.h"

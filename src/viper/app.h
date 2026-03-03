@@ -25,6 +25,12 @@
 // third party header file
 #include "core/app/core.h"
 
+// c++ standard header file
+#include <string>
+#include <vector>
+
+#include <termios.h>
+
 class App final
 {
 public:
@@ -36,6 +42,13 @@ public:
     void                       Close();
 
 private:
+    enum class InteractiveResult
+    {
+        Continue,
+        Exit,
+        Execute,
+    };
+
     viper::internal::ErrorCode GuardLoop();
     viper::internal::ErrorCode RunInteractiveLoop();
     void                       DumpConfiguration();
@@ -46,6 +59,16 @@ private:
     viper::internal::ErrorCode InitController();
     viper::internal::ErrorCode LoadConfig(viper::app::ContextPtr ctx);
     std::error_code            Execute(viper::app::ContextPtr ctx);
+
+    std::string BuildInteractivePrompt(const std::vector<std::string>& contextStack) const;
+    bool        SetupRawTerminal(struct termios* saved) const;
+    void        RestoreTerminal(const struct termios* saved) const;
+    bool        ReadInteractiveLine(const std::string& prompt, std::string& lineOut) const;
+    std::vector<std::string> ParseLineToTokens(const std::string& line) const;
+    InteractiveResult ProcessBuiltinCommands(const std::vector<std::string>& tokens,
+                                            std::vector<std::string>&       contextStack);
+    void ExecuteInteractiveCommand(const std::vector<std::string>& contextStack,
+                                   const std::vector<std::string>& tokens);
 
 private:
     ConfigurationPtr    _localConfig;

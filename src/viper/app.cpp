@@ -37,6 +37,185 @@
 #include <system_error>
 #include <vector>
 
+#include <termios.h>
+#include <unistd.h>
+
+std::string App::BuildInteractivePrompt(const std::vector<std::string>& contextStack) const
+{
+    std::string prompt = VIPER_APP_NAME;
+    for (const auto& c : contextStack)
+    {
+        prompt += "/";
+        prompt += c;
+    }
+    prompt += "> ";
+    return prompt;
+}
+
+bool App::SetupRawTerminal(struct termios* saved) const
+{
+    if (saved == nullptr || tcgetattr(STDIN_FILENO, saved) != 0)
+    {
+        return false;
+    }
+    struct termios raw = *saved;
+    raw.c_lflag &= static_cast<tcflag_t>(~ICANON);
+    raw.c_lflag &= static_cast<tcflag_t>(~ECHO);
+    raw.c_cc[VMIN]  = 1;
+    raw.c_cc[VTIME] = 0;
+    return tcsetattr(STDIN_FILENO, TCSANOW, &raw) == 0;
+}
+
+void App::RestoreTerminal(const struct termios* saved) const
+{
+    if (saved != nullptr)
+    {
+        (void)tcsetattr(STDIN_FILENO, TCSANOW, saved);
+    }
+}
+
+bool App::ReadInteractiveLine(const std::string& prompt, std::string& lineOut) const
+{
+    lineOut.clear();
+    while (true)
+    {
+        char ch;
+        if (read(STDIN_FILENO, &ch, 1) != 1)
+        {
+            return false; /* EOF */
+        }
+
+        const unsigned char u = static_cast<unsigned char>(ch);
+        if (u == 0x0c) /* Ctrl+L */
+        {
+            std::cout << "\033[2J\033[H" << std::flush;
+            std::cout << prompt << std::flush;
+            lineOut.clear();
+            continue;
+        }
+
+        if (ch == '\n' || ch == '\r')
+        {
+            std::cout << std::endl;
+            return true;
+        }
+
+        if (u == 127 || u == 8) /* backspace / DEL */
+        {
+            if (!lineOut.empty())
+            {
+                lineOut.pop_back();
+                std::cout << "\b \b" << std::flush;
+            }
+            continue;
+        }
+        
+        lineOut += ch;
+        std::cout << ch << std::flush;
+    }
+}
+
+std::vector<std::string> App::ParseLineToTokens(const std::string& line) const
+{
+    std::vector<std::string> tokens;
+    tokens.push_back(VIPER_APP_NAME);
+    std::istringstream iss(line);
+    std::string        token;
+    while (iss >> token)
+    {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+App::InteractiveResult App::ProcessBuiltinCommands(const std::vector<std::string>& tokens,
+                                                  std::vector<std::string>&       contextStack)
+{
+    if (tokens.size() < 2)
+    {
+        return InteractiveResult::Continue;
+    }
+
+    const std::string firstLower = viper::text::ToLower(tokens[1]);
+    if (firstLower == "exit" || firstLower == "quit")
+    {
+        return InteractiveResult::Exit;
+    }
+
+    auto current = _core->GetInteractiveRoot();
+    for (const auto& name : contextStack)
+    {
+        current = current->GetSubcommand(name);
+        if (!current)
+        {
+            break;
+        }
+    }
+
+    if (firstLower == "use")
+    {
+        if (tokens.size() < 3)
+        {
+            std::cout << "use <context>" << std::endl;
+            return InteractiveResult::Continue;
+        }
+        const std::string ctxName = tokens[2];
+        auto              sub     = current ? current->GetSubcommand(ctxName) : nullptr;
+        if (!sub)
+        {
+            std::cout << "unknown context: " << ctxName << std::endl;
+            return InteractiveResult::Continue;
+        }
+        if (!sub->HasSubcommands())
+        {
+            std::cout << "context has no subcommands: " << ctxName << std::endl;
+            return InteractiveResult::Continue;
+        }
+        contextStack.push_back(ctxName);
+        return InteractiveResult::Continue;
+    }
+
+    if (firstLower == "back")
+    {
+        if (contextStack.empty())
+        {
+            std::cout << "already at root" << std::endl;
+            return InteractiveResult::Continue;
+        }
+        contextStack.pop_back();
+        return InteractiveResult::Continue;
+    }
+
+    if (firstLower == "clear")
+    {
+        std::cout << "\033[2J\033[H" << std::flush;
+        return InteractiveResult::Continue;
+    }
+
+    return InteractiveResult::Execute;
+}
+
+void App::ExecuteInteractiveCommand(const std::vector<std::string>& contextStack,
+                                    const std::vector<std::string>& tokens)
+{
+    std::vector<std::string> fullArgs;
+    fullArgs.push_back(VIPER_APP_NAME);
+    for (const auto& c : contextStack)
+    {
+        fullArgs.push_back(c);
+    }
+    for (size_t i = 1; i < tokens.size(); ++i)
+    {
+        fullArgs.push_back(tokens[i]);
+    }
+    std::vector<char*> argvPtrs;
+    for (auto& s : fullArgs)
+    {
+        argvPtrs.push_back(s.data());
+    }
+    (void)_core->ExecuteArgs(static_cast<int>(argvPtrs.size()), argvPtrs.data());
+}
+
 App::App()
 {
     _core        = std::make_shared<viper::app::Core>();
@@ -212,114 +391,42 @@ std::error_code App::Execute(viper::app::ContextPtr ctx)
 
 viper::internal::ErrorCode App::RunInteractiveLoop()
 {
-    std::string              line;
-    std::vector<std::string> argvStorage;
-    std::vector<char*>       argvPtrs;
-    std::vector<std::string> contextStack;
-
-    while (true)
+    struct termios savedTerm;
+    if (!SetupRawTerminal(&savedTerm))
     {
-        // Prompt format: Viper> or Viper/show> or Viper/show/foo>
-        std::string prompt = VIPER_APP_NAME;
-        for (const auto& c : contextStack)
-        {
-            prompt += "/";
-            prompt += c;
-        }
-        prompt += "> ";
-        std::cout << prompt << std::flush;
-
-        if (!std::getline(std::cin, line))
-        {
-            break;
-        }
-
-        std::istringstream iss(line);
-        std::string        token;
-        argvStorage.clear();
-        argvStorage.push_back(VIPER_APP_NAME);
-        while (iss >> token)
-        {
-            argvStorage.push_back(token);
-        }
-
-        if (argvStorage.size() == 1)
-        {
-            continue;
-        }
-
-        const std::string& first      = argvStorage[1];
-        const std::string  firstLower = viper::text::ToLower(first);
-        if (firstLower == "exit" || firstLower == "quit")
-        {
-            break;
-        }
-
-        // Resolve current context (interactive root, or follow contextStack)
-        auto current = _core->GetInteractiveRoot();
-        for (const auto& name : contextStack)
-        {
-            current = current->GetSubcommand(name);
-            if (!current)
-            {
-                break;
-            }
-        }
-
-        if (firstLower == "use")
-        {
-            if (argvStorage.size() < 3)
-            {
-                std::cout << "use <context>" << std::endl;
-                continue;
-            }
-            const std::string ctxName = argvStorage[2];
-            auto              sub     = current ? current->GetSubcommand(ctxName) : nullptr;
-            if (!sub)
-            {
-                std::cout << "unknown context: " << ctxName << std::endl;
-                continue;
-            }
-            if (!sub->HasSubcommands())
-            {
-                std::cout << "context has no subcommands: " << ctxName << std::endl;
-                continue;
-            }
-            contextStack.push_back(ctxName);
-            continue;
-        }
-
-        if (firstLower == "back")
-        {
-            if (contextStack.empty())
-            {
-                std::cout << "already at root" << std::endl;
-                continue;
-            }
-            contextStack.pop_back();
-            continue;
-        }
-
-        // Build full argv: [program, ...contextStack, ...user tokens]
-        std::vector<std::string> fullArgs;
-        fullArgs.push_back(VIPER_APP_NAME);
-        for (const auto& c : contextStack)
-        {
-            fullArgs.push_back(c);
-        }
-        for (size_t i = 1; i < argvStorage.size(); ++i)
-        {
-            fullArgs.push_back(argvStorage[i]);
-        }
-
-        argvPtrs.clear();
-        for (auto& s : fullArgs)
-        {
-            argvPtrs.push_back(s.data());
-        }
-        (void)_core->ExecuteArgs(static_cast<int>(argvPtrs.size()), argvPtrs.data());
+        return viper::internal::ErrorCode::ERROR;
     }
 
+    std::vector<std::string> contextStack;
+    while (true)
+    {
+        const std::string prompt = BuildInteractivePrompt(contextStack);
+        std::cout << prompt << std::flush;
+
+        std::string line;
+        if (!ReadInteractiveLine(prompt, line))
+        {
+            RestoreTerminal(&savedTerm);
+            break;
+        }
+
+        const std::vector<std::string> tokens = ParseLineToTokens(line);
+        const InteractiveResult        result = ProcessBuiltinCommands(tokens, contextStack);
+
+        if (result == InteractiveResult::Exit)
+        {
+            RestoreTerminal(&savedTerm);
+            break;
+        }
+        if (result == InteractiveResult::Continue)
+        {
+            continue;
+        }
+
+        ExecuteInteractiveCommand(contextStack, tokens);
+    }
+
+    RestoreTerminal(&savedTerm);
     std::cout << VIPER_MSG_INTERACTIVE_EXITED << std::endl;
     return viper::internal::ErrorCode::SUCCESS;
 }

@@ -67,6 +67,7 @@ std::shared_ptr<option::Command> BuildLocalCommand(viper::app::CorePtr core)
         auto ec = LocalCpu(core->GetContext());
         return ec ? 1 : 0;
     };
+    
     localCmd->AddCommand(localCpuCmd);
 
     auto localMemCmd    = std::make_shared<option::Command>();

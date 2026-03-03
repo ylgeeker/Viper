@@ -170,11 +170,12 @@ void Command::Usage()
     }
 
     std::cout << "\nUsage:" << std::endl;
-    std::cout << std::left
-              << std::setw(4)
-              << " "
-              << _use;
-
+    std::cout << std::left << std::setw(4) << " ";
+    // In subcontext (e.g. VIPER/local>), do not print command name so user sees "[command]" not "local [command]".
+    if (!_parent)
+    {
+        std::cout << _use;
+    }
     if (HasFlags() && !_subCmds.empty())
     {
         std::cout << " [flags] | [command]";
@@ -211,9 +212,7 @@ void Command::Help()
     if (!_subCmds.empty())
     {
         std::cout << std::endl
-                  << "Use \""
-                  << _use
-                  << " [command] --help\" for more information about a given command."
+                  << "Use \"[command] --help\" for more information about a given command."
                   << std::endl;
     }
 }
